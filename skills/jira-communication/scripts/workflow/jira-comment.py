@@ -57,7 +57,8 @@ def add(ctx, issue_key: str, comment_text: str):
 
     ISSUE_KEY: The Jira issue key (e.g., PROJ-123)
 
-    COMMENT_TEXT: Comment text (use Jira wiki markup, not Markdown)
+    COMMENT_TEXT: Comment text (use Jira wiki markup, not Markdown).
+    Use "-" to read from stdin (e.g., cat file.txt | jira-comment add PROJ-123 -)
 
     Note: Use Jira wiki syntax:
       - *bold* not **bold**
@@ -70,9 +71,46 @@ def add(ctx, issue_key: str, comment_text: str):
       jira-comment add PROJ-123 "Fixed in commit abc123"
 
       jira-comment add PROJ-123 "See {code}config.py{code} for details"
+
+      cat comment.txt | jira-comment add PROJ-123 -
     """
     ctx.obj["client"].with_context(issue_key=issue_key)
     client = ctx.obj["client"]
+
+    # Read from stdin if "-" is passed as comment text
+    if comment_text == "-":
+        if sys.stdin.isatty():
+            error(
+                "'-' requires piped input but stdin is a terminal",
+                suggestion="Usage: cat comment.txt | jira-comment add PROJ-123 -",
+            )
+            sys.exit(1)
+
+        max_size = 256 * 1024  # 256KB, above Jira's comment limit
+        try:
+            comment_text = sys.stdin.read(max_size + 1)
+        except UnicodeDecodeError:
+            error(
+                "stdin contains invalid text encoding (expected UTF-8)",
+                suggestion="Ensure the piped file is valid UTF-8 text, not binary data.",
+            )
+            sys.exit(1)
+
+        if len(comment_text) > max_size:
+            error(
+                f"stdin input exceeds maximum size ({max_size // 1024}KB)",
+                suggestion="Jira comments have size limits. Consider attaching the content as a file.",
+            )
+            sys.exit(1)
+
+        comment_text = comment_text.rstrip("\n")
+
+        if not comment_text.strip():
+            error(
+                "No input received from stdin (empty or whitespace-only)",
+                suggestion="Verify your piped command produces non-empty output.",
+            )
+            sys.exit(1)
 
     try:
         result = client.issue_add_comment(issue_key, comment_text)

@@ -188,7 +188,7 @@ def list_types(ctx, project: str | None):
     try:
         if project:
             # Use project key for profile resolution
-            client.with_context(issue_key=f"{project}-1")
+            client.with_context(project_key=project)
             types = get_project_issue_types(client, project)
         else:
             types = client.get_all_issuetypes()

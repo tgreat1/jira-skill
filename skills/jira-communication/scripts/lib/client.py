@@ -238,7 +238,7 @@ class LazyJiraClient:
         object.__setattr__(self, "_url", None)
         object.__setattr__(self, "_client", None)
 
-    def with_context(self, issue_key: str | None = None, url: str | None = None):
+    def with_context(self, issue_key: str | None = None, url: str | None = None, project_key: str | None = None):
         """Set resolution context for automatic profile matching.
 
         Must be called before the first API call. Has no effect if the
@@ -246,11 +246,15 @@ class LazyJiraClient:
 
         If *issue_key* looks like a URL (starts with http(s)://), it is
         also used as *url* for host-based profile resolution.
+
+        If *project_key* is provided without *issue_key*, it is used to
+        derive a synthetic issue key for profile resolution (e.g., PROJ → PROJ-1).
         """
         if object.__getattribute__(self, "_client") is None:
+            if issue_key is None and project_key is not None:
+                issue_key = f"{project_key}-1"
             if issue_key is not None:
                 object.__setattr__(self, "_issue_key", issue_key)
-                # Detect URL passed as issue_key → enable host-based resolution
                 if url is None and issue_key.startswith(("http://", "https://")):
                     object.__setattr__(self, "_url", issue_key)
             if url is not None:

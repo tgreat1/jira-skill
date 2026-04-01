@@ -66,7 +66,9 @@ def normalize_iso_timestamp(timestamp: str) -> str:
     if re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", timestamp):
         return f"{timestamp}.000{tz_compact}"
 
-    # Fallback: return as-is (let Jira API handle/reject it)
+    # Warn about unrecognized format so the user knows what happened
+    from lib.output import warning
+    warning(f"Unrecognized timestamp format '{timestamp}', passing to Jira API as-is")
     return timestamp
 
 

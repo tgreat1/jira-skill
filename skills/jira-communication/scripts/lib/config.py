@@ -9,6 +9,13 @@ from urllib.parse import urlparse
 
 # === INLINE_START: config ===
 
+# Ensure UTF-8 output on Windows — reuse the shared helper so behavior
+# stays in sync (see output.py for the full rationale).
+if sys.platform == "win32":
+    from .output import _ensure_utf8_streams
+
+    _ensure_utf8_streams()
+
 
 def normalize_netloc(url: str) -> str:
     """Normalize a URL's netloc by lowercasing and stripping default ports."""

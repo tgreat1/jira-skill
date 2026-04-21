@@ -11,10 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`jira-link.py list`**: List all issue links on an issue with IDs, link type, direction, and related issue key/summary/status. Supports `--json` and `--quiet` output modes.
 - **`jira-link.py delete`**: Remove an issue link by `--id` or by the combination of `--to`/`--type`. Detects ambiguous matches and requires `--id` to disambiguate. Supports `--dry-run` preview.
+- **`jira-issue.py time-in-status PROJ-123 [--status X]`**: report cumulative time an issue has spent in each status (or in a single status when `--status` is given). Re-entered statuses are summed. `--status` accepts a fuzzy term — "review" resolves to "In Review" on most instances; ambiguous matches list candidates. ([#72](https://github.com/netresearch/jira-skill/issues/72))
+- **`jira-board.py list --name PATTERN`**: server-side partial match on board name, so the Jira API does the filtering. Eliminates pulling thousands of boards to grep client-side on large instances. ([#72](https://github.com/netresearch/jira-skill/issues/72))
+- **`references/jql-cookbook.md`**: translation guide for turning natural-language queries like *"open bugs stale for 2 weeks"* into safe JQL. Covers `statusCategory` vs. `status`, "blocked" disambiguation, resolver pointers, and worked examples. Complements the existing `jql-quick-reference.md`. ([#72](https://github.com/netresearch/jira-skill/issues/72))
 
 ### Changed
 
 - SKILL.md: add examples for the new `jira-link list`/`delete` subcommands and the previously-undocumented `jira-weblink delete`. Full CRUD for both scripts is still discoverable via `--help`; SKILL.md shows the operations most relevant to the new delete workflow within the 500-word cap.
+- **`jira-issue.py --json get` now returns compact JSON by default** — null and empty-list fields are stripped, trimming the typical issue payload from ~50 KB (dominated by null `customfield_*` entries) to a few KB. Pass `--raw` to restore the full Jira response. ([#72](https://github.com/netresearch/jira-skill/issues/72))
+- SKILL.md: add examples for `jira-issue get --expand changelog,transitions`, compact-vs-`--raw` JSON, `time-in-status`, and `jira-board list --name`. Reference the new `jql-cookbook.md`.
 
 ## [3.10.1] - 2026-04-16
 
